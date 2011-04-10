@@ -7,7 +7,7 @@ class MomentumGame
         @width = @canvas.attr("width")
         @height = @canvas.attr("height")
 
-        @state = new Box2dTestGamestate(@canvas, @ctx, @width, @height)
+        @state = new WorldGameState(@canvas, @ctx, @width, @height)
 
         # init event handling
         canvas.mouseup(=>

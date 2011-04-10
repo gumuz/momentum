@@ -1,5 +1,5 @@
 (function() {
-  var Box2dTestGamestate, Cell, FULL_CIRCLE, GameState, MenuGameState, MomentumGame, Vector, VectorTestGamestate, b2Body, b2BodyDef, b2CircleShape, b2DebugDraw, b2FixtureDef, b2Vec2, b2World;
+  var Body, Circle, GameState, MomentumGame, Vector2, World, WorldGameState;
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -34,164 +34,111 @@
     };
     return GameState;
   })();
-  MenuGameState = (function() {
-    function MenuGameState() {
-      MenuGameState.__super__.constructor.apply(this, arguments);
+  Vector2 = (function() {
+    function Vector2(a, b) {
+      this.a = a;
+      this.b = b;
     }
-    __extends(MenuGameState, GameState);
-    MenuGameState.prototype.init = function() {
-      return this.menu_items = ["play", "about"];
+    Vector2.prototype.add = function(v) {
+      return new Vector2(this.a + v.a, this.b + v.b);
     };
-    MenuGameState.prototype.update = function() {};
-    MenuGameState.prototype.draw = function() {
-      var i, _ref;
-      this.ctx.clearRect(0, 0, this.width, this.height);
-      this.ctx.save();
-      this.ctx.font = "20pt Arial";
-      this.ctx.fillStyle = "black";
-      this.ctx.translate(this.width / 4, 100);
-      for (i = 0, _ref = this.menu_items.length; (0 <= _ref ? i < _ref : i > _ref); (0 <= _ref ? i += 1 : i -= 1)) {
-        this.ctx.fillText(this.menu_items[i], 10, i * 50);
-      }
-      return this.ctx.restore();
+    Vector2.prototype.dot = function(v) {
+      return this.a * v.a + this.b * v.b;
     };
-    return MenuGameState;
+    Vector2.prototype.inv = function() {
+      return new Vector2(-this.a, -this.b);
+    };
+    return Vector2;
   })();
-  FULL_CIRCLE = Math.PI * 2;
-  Vector = (function() {
-    function Vector(x, y) {
-      this.x = x;
-      this.y = y;
+  World = (function() {
+    function World() {
+      this.walls = [[1, 0, 1], [0, -1, 1], [-1, 0, 1], [0, 1, 1]];
+      this.bodies = [new Circle(new Vector2(.2, .1), new Vector2(.01, .01), .01)];
     }
-    Vector.prototype.length = function() {
-      var length;
-      length = Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
-      if (length === NaN) {
-        return 0;
-      } else {
-        return length;
+    World.prototype.step = function() {
+      var N, V, body, body_a, body_b, distance, wall, _i, _j, _k, _l, _len, _len2, _len3, _len4, _len5, _m, _ref, _ref2, _ref3, _ref4, _ref5, _results;
+      _ref = this.bodies;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        body = _ref[_i];
+        _ref2 = this.walls;
+        for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
+          wall = _ref2[_j];
+          V = body.velocity;
+          N = new Vector2(wall[0], wall[1]);
+          distance = body.position.dot(N) + wall[2];
+          if (distance < body.radius) {
+            V.a = V.a - 2 * wall[0] * V.dot(N);
+            V.b = V.b - 2 * wall[1] * V.dot(N);
+          }
+        }
       }
-    };
-    Vector.prototype.normalized = function() {
-      var length, nx, ny;
-      length = this.length();
-      if (length === 0) {
-        return new Vector(0, 0);
+      _ref3 = this.bodies;
+      for (_k = 0, _len3 = _ref3.length; _k < _len3; _k++) {
+        body_a = _ref3[_k];
+        _ref4 = this.bodies;
+        for (_l = 0, _len4 = _ref4.length; _l < _len4; _l++) {
+          body_b = _ref4[_l];
+          1 + 1;
+        }
       }
-      nx = this.x / length;
-      ny = this.y / length;
-      return new Vector(nx, ny);
+      _ref5 = this.bodies;
+      _results = [];
+      for (_m = 0, _len5 = _ref5.length; _m < _len5; _m++) {
+        body = _ref5[_m];
+        _results.push(body.position = body.position.add(body.velocity));
+      }
+      return _results;
     };
-    Vector.prototype.inverted = function() {
-      return new Vector(-this.x, -this.y);
-    };
-    return Vector;
+    return World;
   })();
-  Cell = (function() {
-    function Cell(x, y, mass) {
-      this.x = x;
-      this.y = y;
+  Body = (function() {
+    function Body(position, velocity, mass) {
+      this.position = position;
+      this.velocity = velocity;
       this.mass = mass;
-      this.vector = new Vector(0, 0);
     }
-    Cell.prototype.update = function() {
-      this.x += this.vector.x * 0.1;
-      return this.y += this.vector.y * 0.1;
-    };
-    Cell.prototype.move = function(vector) {
-      this.vector.x += vector.x * .1;
-      return this.vector.y += vector.y * .1;
-    };
-    return Cell;
+    return Body;
   })();
-  VectorTestGamestate = (function() {
-    function VectorTestGamestate() {
-      VectorTestGamestate.__super__.constructor.apply(this, arguments);
+  Circle = (function() {
+    __extends(Circle, Body);
+    function Circle(position, velocity, mass) {
+      this.position = position;
+      this.velocity = velocity;
+      this.mass = mass;
+      this.radius = Math.sqrt(Math.PI * this.mass);
     }
-    __extends(VectorTestGamestate, GameState);
-    VectorTestGamestate.prototype.init = function() {
-      this.cell = new Cell(100, 100, 2500);
-      return this.others = [new Cell(10, 10, 1500), new Cell(10, 200, 1500), new Cell(300, 100, 1500)];
-    };
-    VectorTestGamestate.prototype.update = function() {
-      var mousex, mousey, _ref;
-      if (this.ismousedown) {
-        _ref = this.mousepos, mousex = _ref[0], mousey = _ref[1];
-        this.cell.move((new Vector(this.cell.x - mousex, this.cell.y - mousey)).normalized());
-      }
-      return this.cell.update();
-    };
-    VectorTestGamestate.prototype.draw = function() {
-      this.ctx.clearRect(0, 0, this.width, this.height);
-      this.ctx.save();
-      this.ctx.translate(this.cell.x, this.cell.y);
-      this.ctx.beginPath();
-      this.ctx.fillStyle = "blue";
-      this.ctx.arc(0, 0, Math.sqrt(this.cell.mass / Math.PI), 0, FULL_CIRCLE, true);
-      this.ctx.closePath();
-      this.ctx.fill();
-      return this.ctx.restore();
-    };
-    return VectorTestGamestate;
+    return Circle;
   })();
-  FULL_CIRCLE = Math.PI * 2;
-  b2World = Box2D.Dynamics.b2World;
-  b2Vec2 = Box2D.Common.Math.b2Vec2;
-  b2BodyDef = Box2D.Dynamics.b2BodyDef;
-  b2Body = Box2D.Dynamics.b2Body;
-  b2CircleShape = Box2D.Collision.Shapes.b2CircleShape;
-  b2FixtureDef = Box2D.Dynamics.b2FixtureDef;
-  b2DebugDraw = Box2D.Dynamics.b2DebugDraw;
-  Box2dTestGamestate = (function() {
-    function Box2dTestGamestate() {
-      Box2dTestGamestate.__super__.constructor.apply(this, arguments);
+  WorldGameState = (function() {
+    function WorldGameState() {
+      WorldGameState.__super__.constructor.apply(this, arguments);
     }
-    __extends(Box2dTestGamestate, GameState);
-    Box2dTestGamestate.prototype.init = function() {
-      var bodyDef, debugDraw, fixDef;
-      this.world = new b2World(new b2Vec2(0, 0), false);
-      fixDef = new b2FixtureDef;
-      fixDef.density = 1.0;
-      fixDef.friction = 0.5;
-      fixDef.restitution = 0.2;
-      bodyDef = new b2BodyDef;
-      bodyDef.type = b2Body.b2_dynamicBody;
-      fixDef.shape = new b2CircleShape(2);
-      bodyDef.position.x = 100;
-      bodyDef.position.y = 100;
-      this.body = this.world.CreateBody(bodyDef);
-      this.fixture = this.body.CreateFixture(fixDef);
-      debugDraw = new b2DebugDraw();
-      debugDraw.SetSprite(this.ctx);
-      debugDraw.SetDrawScale(30.0);
-      debugDraw.SetFillAlpha(0.3);
-      debugDraw.SetLineThickness(1.0);
-      debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit);
-      return this.world.SetDebugDraw(debugDraw);
+    __extends(WorldGameState, GameState);
+    WorldGameState.prototype.init = function() {
+      this.world = new World();
+      return this.scale = Math.min(this.height, this.width);
     };
-    Box2dTestGamestate.prototype.update = function() {
-      var ballx, bally, mousex, mousey, _ref, _ref2;
-      if (this.ismousedown) {
-        _ref = this.mousepos, mousex = _ref[0], mousey = _ref[1];
-        _ref2 = [this.body.GetPosition().x, this.body.GetPosition().y], ballx = _ref2[0], bally = _ref2[1];
-        this.body.ApplyForce(new b2Vec2(ballx - mousex, bally - mousey), this.body.GetPosition());
-        console.log(this.body);
-      }
-      this.world.Step(1 / 60, 10, 10);
-      return this.world.ClearForces();
+    WorldGameState.prototype.update = function() {
+      return this.world.step();
     };
-    Box2dTestGamestate.prototype.draw = function() {
+    WorldGameState.prototype.draw = function() {
+      var body, r, x, y, _i, _len, _ref, _results;
       this.ctx.clearRect(0, 0, this.width, this.height);
-      this.ctx.save();
-      this.ctx.translate(this.body.GetPosition().x, this.body.GetPosition().y);
-      this.ctx.beginPath();
-      this.ctx.fillStyle = "blue";
-      this.ctx.arc(0, 0, 20, 0, FULL_CIRCLE, true);
-      this.ctx.closePath();
-      this.ctx.fill();
-      return this.ctx.restore();
+      _ref = this.world.bodies;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        body = _ref[_i];
+        x = (1 + body.position.a) * (this.scale / 2);
+        y = (1 + body.position.b) * (this.scale / 2);
+        r = body.radius * (this.scale / 2);
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, r, 0, Math.PI * 2, true);
+        this.ctx.closePath();
+        _results.push(this.ctx.fill());
+      }
+      return _results;
     };
-    return Box2dTestGamestate;
+    return WorldGameState;
   })();
   MomentumGame = (function() {
     function MomentumGame(canvas) {
@@ -199,7 +146,7 @@
       this.ctx = this.canvas[0].getContext("2d");
       this.width = this.canvas.attr("width");
       this.height = this.canvas.attr("height");
-      this.state = new Box2dTestGamestate(this.canvas, this.ctx, this.width, this.height);
+      this.state = new WorldGameState(this.canvas, this.ctx, this.width, this.height);
       canvas.mouseup(__bind(function() {
         return this.state.mousedown(false);
       }, this));

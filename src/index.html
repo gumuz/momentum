@@ -11,7 +11,7 @@
                 height = $(window).height();
                 
             var canvas = $("#viewport");
-            canvas.attr("width", width).attr("height", height);
+            //canvas.attr("width", width).attr("height", height);
             
             var game = new MomentumGame(canvas);
             game.run();
@@ -29,6 +29,6 @@
     </style>
 </head>
 <body>
-    <canvas id="viewport"></canvas>
+    <canvas id="viewport" width="400px" height="400px"></canvas>
 </body>
 </html>
