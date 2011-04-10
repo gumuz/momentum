@@ -1,0 +1,7 @@
+coffee -l -w --output js --join --compile \
+    ./coffee/utils.coffee \
+    ./coffee/gamestate.coffee \
+    ./coffee/menugamestate.coffee \
+    ./coffee/vectortest.coffee \
+    ./coffee/box2dtest.coffee \
+    ./coffee/momentum.coffee
