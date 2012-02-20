@@ -1,5 +1,0 @@
-coffee -l -w --output js --join --compile \
-    ./coffee/utils.coffee \
-    ./coffee/gamestate.coffee \
-    ./coffee/world.coffee \
-    ./coffee/momentum.coffee
