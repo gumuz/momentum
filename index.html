@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><head>
+	<title>osmosis</title>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
+	<script type="text/javascript" src="js/osmosis.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			var canvas = $("#viewport");
+			var game = new OsmosisGame(
+				canvas[0].getContext("2d"), 
+				canvas.attr("width"),
+				canvas.attr("height")
+			);
+			
+			canvas.mousemove(function(e) {
+				game.mouseover(e.offsetX, e.offsetY);
+			});
+			canvas.mousedown(function(e) {
+				game.mousedown();
+			});
+			canvas.mouseup(function(e) {
+				game.mouseup();
+			});
+			
+			game.run();
+		});
+	</script>
+	<style type="text/css">
+		canvas {
+			border: 1px solid grey;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="viewport" height="500" width="800"></canvas></body>
+</html>
